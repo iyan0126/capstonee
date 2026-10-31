@@ -1,13 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-    content="width=device=width, intial-scale=1.0">
-    <title>Toggle</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <input type="checkbox" class="checkbox">
-</body>
-</html>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    display: grid;
+    height: 100vh;
+    place-items: center;
+    background: transparent; 
+    overflow: hidden;
+  }
+
+  /* Mini 80px width x 40px height */
+  .checkbox {
+    height: 40px;
+    width: 80px;
+    background: #222;
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 40px;
+    
+    /* 1. ADD OUTLINE TO THE TOGGLE TRACK */
+    border: 1px solid #000000; 
+    
+    box-shadow: inset 0 2px 15px rgba(0, 0, 0, 0.1), 
+                inset 0 2px 2px rgba(0, 0, 0, 0.1),
+                inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+    position: relative;
+    outline: none;
+    cursor: pointer;
+    transition: 0.5s;
+  }
+
+  /* Mini moving dial */
+  .checkbox::before {
+    /* Adjusted from 40px to 36px to stay perfectly centered inside the 2px border */
+    height: 36px;
+    width: 36px;
+    position: absolute;
+    left: 0;
+    content: "";
+    background: linear-gradient(to bottom, #444, #222);
+    border-radius: 40px;
+    transform: scale(0.9);
+    transition: 0.5s;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5), 
+                inset 1px 1px rgba(255, 255, 255, 0.2),
+                inset -1px 1px rgba(255, 255, 255, 0.2);
+    z-index: 2;
+    border: 1px solid #000000; 
+  }
+
+  /* Changes track background to a distinct blue when checked */
+  .checkbox:checked {
+    background: #f7c155;
+    
+    /* 2. OPTIONAL: Updates outline color when active (e.g., changes to match the yellow background or stays white) */
+    border-color: #000000; 
+    border: 1px solid #000000;
+    
+    box-shadow: inset 0 1px 15px rgba(0, 0, 0, 0.1),
+                inset 0 1px 2px rgba(0, 0, 0, 0.1),
+                inset 0 -1px 1px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Moves the dial 40px to the right and clears it to bright white gradient */
+  .checkbox:checked::before {
+    /* Adjusted from 40px to 40px width minus the border offset */
+    left: 40px;
+    box-shadow: 0 2px 5px rgba(30, 144, 255, 0.3),
+                inset 1px 1px rgba(255, 255, 255, 1),
+                inset -1px 1px rgba(255, 255, 255, 1);
+    background: linear-gradient(to bottom, #ffffff, #f0f0f0);
+  }
+</style>
+
+<input type="checkbox" class="checkbox">
