@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://googleapis.com/css2?family=Poppins:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    .widget-container {
+      background-color: #344955;
+      border-radius: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 550px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      border: 2px solid #000000;
+    }
+
+    .widget-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #ffffff;
+      margin-bottom: 16px;
+    }
+
+    .spending-text {
+      font-size: 1.15rem;
+      font-weight: 500;
+      letter-spacing: -0.2px;
+    }
+
+    .amount-highlight {
+      color: #f7c155;
+      font-weight: 700;
+    }
+
+    .date-stamp {
+      font-size: 1rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.8);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .progress-track {
+      background-color: #ffffff;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      border: 2px solid rgba(0, 0, 0, 0);
+    }
+
+    .progress-fill {
+      background-color: #f7c155;
+      height: 100%;
+      width: 0%; 
+      border-top-left-radius: 9px;
+      border-bottom-left-radius: 9px;
+      display: flex;
+      align-items: center;
+      padding-left: 16px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .percentage-spent {
+      color: #ffffff;
+      -webkit-text-stroke: 1.5px #333333;
+      font-weight: 700;
+      font-size: 1.4rem;
+      letter-spacing: -0.5px;
+      white-space: nowrap;
+    }
+
+    .percentage-remaining {
+      position: absolute;
+      right: 16px;
+      color: #333333;
+      font-weight: 700;
+      font-size: 1.4rem;
+      letter-spacing: -0.5px;
+      white-space: nowrap;
+    }
+    
+    /* Subtle fallback loader state text */
+    .loading-state {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="widget-container">
+    <div class="widget-header">
+      <p class="spending-text" id="spent-text-container">
+        <span class="loading-state">Fetching budget metrics...</span>
+      </p>
+      <span class="date-stamp" id="date-stamp">---</span>
+    </div>
+    
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill">
+        <span class="percentage-spent" id="pct-spent">0.00%</span>
+      </div>
+      <span class="percentage-remaining" id="pct-remaining">100.00%</span>
+    </div>
+  </div>
+
+  <script>
+    // ===================================================
+    // ⚙️ CONNECT TO YOUR GOOGLE SHEET DATA
+    // Insert your unique Sheet ID and personal Cloud API Key
+    // ===================================================
+    const SHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
+    const API_KEY = 'YOUR_API_KEY_HERE';
+    const RANGE = 'Sheet1!A2:B2'; // Reads the values in row 2 directly
+
+    const API_URL = `https://googleapis.com{SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+
+    // Update Date instantly
+    const currentDate = new Date();
+    const monthString = currentDate.toLocaleString('en-US', { month: 'short' });
+    const yearString = currentDate.getFullYear();
+    document.getElementById('date-stamp').textContent = `${monthString} ${yearString}`;
+
+    // Fetch live spreadsheet values
+    async function fetchSpreadsheetData() {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('API Network connection error');
+        
+        const data = await response.json();
+        
+        // Parse raw matrix string fields out into absolute floats safely
+        const totalBudget = parseFloat(data.values[0][0]);
+        const amountSpent = parseFloat(data.values[0][1]);
+
+        updateWidgetUI(totalBudget, amountSpent);
+      } catch (error) {
+        console.error('Failed to parse spreadsheet updates:', error);
+        document.getElementById('spent-text-container').innerHTML = 
+          `<span style="color: #ff6b6b;">Error loading live sheet data</span>`;
+      }
+    }
+
+    function updateWidgetUI(totalBudget, amountSpent) {
+      let spentPercentage = 0;
+      let remainingPercentage = 100;
+
+      if (totalBudget > 0) {
+        spentPercentage = (amountSpent / totalBudget) * 100;
+        spentPercentage = Math.min(Math.max(spentPercentage, 0), 100);
+        remainingPercentage = 100 - spentPercentage;
+      }
+
+      const phpFormatter = new Intl.NumberFormat('en-PH', {
+        style: 'currency',
+        currency: 'PHP',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      // Update inner structural textual values
+      document.getElementById('spent-text-container').innerHTML = 
+        `You have spent <span class="amount-highlight">${phpFormatter.format(amountSpent)}</span> this month.`;
+      
+      document.getElementById('progress-fill').style.width = spentPercentage.toFixed(2) + '%';
+      document.getElementById('pct-spent').textContent = spentPercentage.toFixed(2) + '%';
+      document.getElementById('pct-remaining').textContent = remainingPercentage.toFixed(2) + '%';
+    }
+
+    // Call execution instantly on block initialization
+    fetchSpreadsheetData();
+  </script>
+
+</body>
+</html>
+

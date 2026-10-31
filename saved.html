@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://googleapis.com/css2?family=Poppins:wght@500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 5px; 
+      overflow: hidden;
+    }
+
+    .widget-container {
+      background-color: #344955;
+      border-radius: 16px; 
+      padding: 14px 20px; 
+      width: 100%;
+      max-width: 550px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+      border: 2px solid #000000;
+    }
+
+    .widget-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #ffffff;
+      margin-bottom: 10px; 
+    }
+
+    .saving-text {
+      font-size: 0.8rem; 
+      font-weight: 700;
+      letter-spacing: 0.1px;
+    }
+
+    .amount-highlight {
+      color: #f7c155;
+      font-weight: 800;
+    }
+
+    .date-stamp {
+      font-size: 0.8rem; 
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .progress-track {
+      background-color: #ffffff;
+      height: 36px; 
+      border-radius: 8px; 
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      border: 2px solid rgba(0, 0, 0, 0);
+    }
+
+    .progress-fill {
+      background-color: #f7c155;
+      height: 100%;
+      width: 0%; 
+      border-top-left-radius: 7px;
+      border-bottom-left-radius: 7px;
+      display: flex;
+      align-items: center;
+      padding-left: 12px; 
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .percentage-saved {
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 1.05rem; 
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+    }
+
+    .percentage-remaining {
+      position: absolute;
+      right: 12px; 
+      color: #423c2f;
+      font-weight: 700;
+      font-size: 1.05rem; 
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+    }
+    
+    .loading-state {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="widget-container">
+    <div class="widget-header">
+      <p class="saving-text" id="saving-text-container">
+        <span class="loading-state">Fetching savings metrics...</span>
+      </p>
+      <span class="date-stamp" id="date-stamp">---</span>
+    </div>
+    
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill">
+        <span class="percentage-saved" id="pct-saved">0.00%</span>
+      </div>
+      <span class="percentage-remaining" id="pct-remaining">100.00%</span>
+    </div>
+  </div>
+
+  <script>
+    // Keeping your exact dynamic web app API endpoint link
+    const API_URL = `https://google.com`; 
+  
+    // Set current date display instantly
+    const currentDate = new Date();
+    const monthString = currentDate.toLocaleString('en-US', { month: 'short' });
+    const yearString = currentDate.getFullYear();
+    document.getElementById('date-stamp').textContent = `${monthString} ${yearString}`;
+
+    async function fetchSpreadsheetData() {
+      try {
+        const noCacheUrl = `${API_URL}?v=${new Date().getTime()}`;
+        const response = await fetch(noCacheUrl, {
+          method: 'GET',
+          mode: 'cors',
+          redirect: 'follow'
+        });
+        
+        if (!response.ok) throw new Error('API connection error');
+        
+        const data = await response.json();
+        
+        // CUSTOMIZATION: Remapping variables to match your preference
+        // "amountSaved" takes the data stream of amount spent
+        // "amountSpentLimit" takes the data stream of total budget
+        const amountSaved = parseFloat(data.amountSpent);
+        const amountSpentLimit = parseFloat(data.totalBudget);
+
+        updateWidgetUI(amountSpentLimit, amountSaved);
+      } catch (error) {
+        console.error('Data stream error:', error);
+        document.getElementById('saving-text-container').innerHTML = 
+          `<span style="color: #ff6b6b;">Syncing error... retrying</span>`;
+        
+        setTimeout(fetchSpreadsheetData, 3000);
+      }
+    }
+
+    function updateWidgetUI(totalLimit, activeSaved) {
+      let savedPercentage = 0;
+      let remainingPercentage = 100;
+
+      if (totalLimit > 0) {
+        // Calculation maps your new custom variable proportions
+        savedPercentage = (activeSaved / totalLimit) * 100;
+        savedPercentage = Math.min(Math.max(savedPercentage, 0), 100);
+        remainingPercentage = 100 - savedPercentage;
+      }
+
+      const phpFormatter = new Intl.NumberFormat('en-PH', {
+        style: 'currency',
+        currency: 'PHP',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      // Updated UI labels to reflect savings tracking
+      document.getElementById('saving-text-container').innerHTML = 
+        `You have saved <span class="amount-highlight">${phpFormatter.format(activeSaved)}</span> this month.`;
+      
+      document.getElementById('progress-fill').style.width = savedPercentage.toFixed(2) + '%';
+      document.getElementById('pct-saved').textContent = savedPercentage.toFixed(2) + '%';
+      document.getElementById('pct-remaining').textContent = remainingPercentage.toFixed(2) + '%';
+    }
+
+    fetchSpreadsheetData();
+  </script>
+
+</body>
+</html>
