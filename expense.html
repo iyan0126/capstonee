@@ -20,17 +20,17 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: 10px;
+      padding: 5px; 
       overflow: hidden;
     }
 
     .widget-container {
       background-color: #344955;
-      border-radius: 20px;
-      padding: 24px;
+      border-radius: 16px; 
+      padding: 14px 20px; 
       width: 100%;
       max-width: 550px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
       border: 2px solid #000000;
     }
 
@@ -39,11 +39,11 @@
       justify-content: space-between;
       align-items: center;
       color: #ffffff;
-      margin-bottom: 16px;
+      margin-bottom: 10px; 
     }
 
     .spending-text {
-      font-size: 0.9rem;
+      font-size: 0.8rem; 
       font-weight: 700;
       letter-spacing: 0.1px;
     }
@@ -54,7 +54,7 @@
     }
 
     .date-stamp {
-      font-size: 0.9rem;
+      font-size: 0.8rem; 
       font-weight: 700;
       color: #ffffff;
       letter-spacing: 0.5px;
@@ -63,8 +63,8 @@
 
     .progress-track {
       background-color: #ffffff;
-      height: 48px;
-      border-radius: 10px;
+      height: 36px; 
+      border-radius: 8px; 
       display: flex;
       align-items: center;
       position: relative;
@@ -76,35 +76,35 @@
       background-color: #f7c155;
       height: 100%;
       width: 0%; 
-      border-top-left-radius: 9px;
-      border-bottom-left-radius: 9px;
+      border-top-left-radius: 7px;
+      border-bottom-left-radius: 7px;
       display: flex;
       align-items: center;
-      padding-left: 16px;
+      padding-left: 12px; 
       transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .percentage-spent {
       color: #ffffff;
       font-weight: 700;
-      font-size: 1.4rem;
-      letter-spacing: -0.5px;
+      font-size: 1.05rem; 
+      letter-spacing: -0.3px;
       white-space: nowrap;
     }
 
     .percentage-remaining {
       position: absolute;
-      right: 16px;
+      right: 12px; 
       color: #423c2f;
       font-weight: 700;
-      font-size: 1.4rem;
-      letter-spacing: -0.5px;
+      font-size: 1.05rem; 
+      letter-spacing: -0.3px;
       white-space: nowrap;
     }
     
     .loading-state {
       color: rgba(255, 255, 255, 0.6);
-      font-size: 0.9rem;
+      font-size: 0.8rem;
     }
   </style>
 </head>
@@ -126,7 +126,7 @@
     </div>
   </div>
 
-    <script>
+  <script>
     const API_URL = `https://script.google.com/macros/s/AKfycbzmSA0pXfU5rj-MZm0TmsmxABrBvWv89fmJyt6xy8hNsFWNYm3zfxSvZu2yBFGAYgYXIQ/exec`; 
   
     const currentDate = new Date();
@@ -135,56 +135,58 @@
     document.getElementById('date-stamp').textContent = `${monthString} ${yearString}`;
 
     async function fetchSpreadsheetData() {
-    try {
-      const noCacheUrl = `${API_URL}?v=${new Date().getTime()}`;
-      
-      const response = await fetch(noCacheUrl, {
-        method: 'GET',
-        mode: 'cors',
-        redirect: 'follow'
+      try {
+        const noCacheUrl = `${API_URL}?v=${new Date().getTime()}`;
+        
+        const response = await fetch(noCacheUrl, {
+          method: 'GET',
+          mode: 'cors',
+          redirect: 'follow'
+        });
+        
+        if (!response.ok) throw new Error('API connection error');
+        
+        const data = await response.json();
+        
+        const totalBudget = parseFloat(data.totalBudget);
+        const amountSpent = parseFloat(data.amountSpent);
+
+        updateWidgetUI(totalBudget, amountSpent);
+      } catch (error) {
+        console.error('Data stream error:', error);
+        document.getElementById('spent-text-container').innerHTML = 
+          `<span style="color: #ff6b6b;">Syncing error... retrying</span>`;
+        
+        setTimeout(fetchSpreadsheetData, 3000);
+      }
+    }
+
+    function updateWidgetUI(totalBudget, amountSpent) {
+      let spentPercentage = 0;
+      let remainingPercentage = 100;
+
+      if (totalBudget > 0) {
+        spentPercentage = (amountSpent / totalBudget) * 100;
+        spentPercentage = Math.min(Math.max(spentPercentage, 0), 100);
+        remainingPercentage = 100 - spentPercentage;
+      }
+
+      const phpFormatter = new Intl.NumberFormat('en-PH', {
+        style: 'currency',
+        currency: 'PHP',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
       });
-      
-      if (!response.ok) throw new Error('API connection error');
-      
-      const data = await response.json();
-      const totalBudget = parseFloat(data.totalBudget);
-      const amountSpent = parseFloat(data.amountSpent);
 
-      updateWidgetUI(totalBudget, amountSpent);
-    } catch (error) {
-      console.error('Data stream error:', error);
       document.getElementById('spent-text-container').innerHTML = 
-        `<span style="color: #ff6b6b;">Syncing error... retrying</span>`;
-      setTimeout(fetchSpreadsheetData, 3000);
-    }
-  }
-
-  function updateWidgetUI(totalBudget, amountSpent) {
-    let spentPercentage = 0;
-    let remainingPercentage = 100;
-
-    if (totalBudget > 0) {
-      spentPercentage = (amountSpent / totalBudget) * 100;
-      spentPercentage = Math.min(Math.max(spentPercentage, 0), 100);
-      remainingPercentage = 100 - spentPercentage;
+        `You have spent <span class="amount-highlight">${phpFormatter.format(amountSpent)}</span> this month.`;
+      
+      document.getElementById('progress-fill').style.width = spentPercentage.toFixed(2) + '%';
+      document.getElementById('pct-spent').textContent = spentPercentage.toFixed(2) + '%';
+      document.getElementById('pct-remaining').textContent = remainingPercentage.toFixed(2) + '%';
     }
 
-    const phpFormatter = new Intl.NumberFormat('en-PH', {
-      style: 'currency',
-      currency: 'PHP',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-
-    document.getElementById('spent-text-container').innerHTML = 
-      `You have spent <span class="amount-highlight">${phpFormatter.format(amountSpent)}</span> this month.`;
-    
-    document.getElementById('progress-fill').style.width = spentPercentage.toFixed(2) + '%';
-    document.getElementById('pct-spent').textContent = spentPercentage.toFixed(2) + '%';
-    document.getElementById('pct-remaining').textContent = remainingPercentage.toFixed(2) + '%';
-  }
-
-  fetchSpreadsheetData();
+    fetchSpreadsheetData();
   </script>
 
 </body>
