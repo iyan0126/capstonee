@@ -127,10 +127,8 @@
   </div>
 
   <script>
-    // Keeping your exact dynamic web app API endpoint link
-    const API_URL = `https://google.com`; 
+    const API_URL = `https://script.google.com/macros/s/AKfycbzmSA0pXfU5rj-MZm0TmsmxABrBvWv89fmJyt6xy8hNsFWNYm3zfxSvZu2yBFGAYgYXIQ/exec`; 
   
-    // Set current date display instantly
     const currentDate = new Date();
     const monthString = currentDate.toLocaleString('en-US', { month: 'short' });
     const yearString = currentDate.getFullYear();
@@ -148,10 +146,6 @@
         if (!response.ok) throw new Error('API connection error');
         
         const data = await response.json();
-        
-        // CUSTOMIZATION: Remapping variables to match your preference
-        // "amountSaved" takes the data stream of amount spent
-        // "amountSpentLimit" takes the data stream of total budget
         const amountSaved = parseFloat(data.amountSpent);
         const amountSpentLimit = parseFloat(data.totalBudget);
 
@@ -170,7 +164,6 @@
       let remainingPercentage = 100;
 
       if (totalLimit > 0) {
-        // Calculation maps your new custom variable proportions
         savedPercentage = (activeSaved / totalLimit) * 100;
         savedPercentage = Math.min(Math.max(savedPercentage, 0), 100);
         remainingPercentage = 100 - savedPercentage;
@@ -183,7 +176,6 @@
         maximumFractionDigits: 2
       });
 
-      // Updated UI labels to reflect savings tracking
       document.getElementById('saving-text-container').innerHTML = 
         `You have saved <span class="amount-highlight">${phpFormatter.format(activeSaved)}</span> this month.`;
       
