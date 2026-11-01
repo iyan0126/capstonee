@@ -146,10 +146,15 @@
         if (!response.ok) throw new Error('API connection error');
         
         const data = await response.json();
-        const amountSaved = parseFloat(data.amountSpent);
-        const amountSpentLimit = parseFloat(data.totalBudget);
+        
+        // Extract the absolute base metrics from your API payload
+        const totalBudget = parseFloat(data.totalBudget);
+        const amountSpent = parseFloat(data.amountSpent);
 
-        updateWidgetUI(amountSpentLimit, amountSaved);
+        // Core Mathematical Transformation: Amount Saved = Total Budget - Amount Spent
+        const amountSaved = totalBudget - amountSpent;
+
+        updateWidgetUI(totalBudget, amountSaved);
       } catch (error) {
         console.error('Data stream error:', error);
         document.getElementById('saving-text-container').innerHTML = 
