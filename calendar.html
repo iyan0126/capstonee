@@ -10,7 +10,7 @@
   <style>
     body {
       margin: 0;
-      padding: 10px;
+      padding: 8px; 
       background: transparent;
       font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
       display: flex;
@@ -21,8 +21,8 @@
     .calendar-container {
       background-color: #FAD376; 
       border: 2px solid #000000; 
-      border-radius: 32px; 
-      padding: 18px 24px;
+      border-radius: 26px;
+      padding: 14px 20px; 
       width: 100%;
       max-width: 550px;
       box-sizing: border-box;
@@ -33,12 +33,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
     }
 
     .month-year {
-      font-size: 18px;
-      font-weight: 900; /* Extra bold text styling */
+      font-size: 16px; 
+      font-weight: 900; 
       color: #000000;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -47,11 +47,11 @@
     .nav-btn {
       background: none;
       border: none;
-      font-size: 22px;
+      font-size: 20px; 
       font-weight: 900;
       color: #000000;
       cursor: pointer;
-      padding: 0 10px;
+      padding: 0 8px;
       transition: transform 0.1s ease;
     }
 
@@ -63,14 +63,14 @@
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       text-align: center;
-      gap: 4px;
+      gap: 3px; 
     }
 
     .day-label {
-      font-size: 20px;
+      font-size: 16px; 
       font-weight: 900;
-      color: #423c2f; /* Slightly muted dark tone for day letters */
-      margin-bottom: 8px;
+      color: #423c2f; 
+      margin-bottom: 4px; 
       text-transform: uppercase; 
     }
 
@@ -80,34 +80,32 @@
       align-items: center;
       justify-content: center;
       position: relative;
-      height: 72px;
+      height: 60px; 
     }
 
     .date-number {
-      font-size: 20px;
+      font-size: 17px; 
       font-weight: 800;
       color: #3a505f;
       z-index: 2;
     }
 
-    /* Active current/selected day style matching the dark pill shape */
     .day-cell.active {
-      background-color: #3a505f; /* Dark grey/blue pill color */
+      background-color: #3a505f; 
       border: 1px solid #000000;
-      border-radius: 14px;
+      border-radius: 12px; 
     }
 
     .day-cell.active .date-number {
-      color: #FFFFFF; /* White number contrast inside the dark pill */
+      color: #FFFFFF; 
     }
 
-    /* Small event/status indicator dot matching the reference image */
     .dot-indicator {
-      width: 5px;
-      height: 5px;
+      width: 4.5px; 
+      height: 4.5px;
       background-color: #FFFFFF;
       border-radius: 50%;
-      margin-top: 4px;
+      margin-top: 3px; 
       z-index: 2;
     }
   </style>
@@ -127,9 +125,8 @@
   </div>
 
   <script>
-    // System automatically tracks current week layout dynamically
     let currentDate = new Date(); 
-    const today = new Date(); // To lock and match current real-time date highlight
+    const today = new Date(); 
 
     const monthNames = [
       "January", "February", "March", "April", "May", "June",
@@ -142,17 +139,14 @@
       const header = document.getElementById("monthYearHeader");
       grid.innerHTML = "";
 
-      // Find the start of the current week (Sunday)
       const currentDayOfWeek = date.getDay();
       const startOfWeek = new Date(date);
       startOfWeek.setDate(date.getDate() - currentDayOfWeek);
 
-      // Set Header text to bold Month & Year based on middle day of the week view
       const middleWeekDate = new Date(startOfWeek);
       middleWeekDate.setDate(startOfWeek.getDate() + 3);
       header.textContent = `${monthNames[middleWeekDate.getMonth()]} ${middleWeekDate.getFullYear()}`;
 
-      // 1. Render single letter day labels (S M T W T F S)
       dayLabels.forEach(label => {
         const div = document.createElement("div");
         div.className = "day-label";
@@ -160,7 +154,6 @@
         grid.appendChild(div);
       });
 
-      // 2. Render dates grid row
       for (let i = 0; i < 7; i++) {
         const activeDate = new Date(startOfWeek);
         activeDate.setDate(startOfWeek.getDate() + i);
@@ -170,11 +163,9 @@
 
         const numSpan = document.createElement("span");
         numSpan.className = "date-number";
-        // Pad numbers to match double-digit image formatting (e.g., 09, 10, 11)
         numSpan.textContent = String(activeDate.getDate()).padStart(2, '0');
         cell.appendChild(numSpan);
 
-        // Highlight matching real-time current date with dark pill & white indicator dot
         if (activeDate.toDateString() === today.toDateString()) {
           cell.classList.add("active");
           const dot = document.createElement("div");
@@ -191,7 +182,6 @@
       renderCalendar(currentDate);
     }
 
-    // Initialize layout on launch
     renderCalendar(currentDate);
   </script>
 </body>
