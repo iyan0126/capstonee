@@ -43,20 +43,20 @@
     }
 
     .spending-text {
-      font-size: 1.15rem;
-      font-weight: 500;
-      letter-spacing: -0.2px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.1px;
     }
 
     .amount-highlight {
       color: #f7c155;
-      font-weight: 700;
+      font-weight: 800;
     }
 
     .date-stamp {
-      font-size: 1rem;
+      font-size: 0.9rem;
       font-weight: 700;
-      color: rgba(255, 255, 255, 0.8);
+      color: #ffffff;
       letter-spacing: 0.5px;
       text-transform: uppercase;
     }
@@ -86,7 +86,6 @@
 
     .percentage-spent {
       color: #ffffff;
-      -webkit-text-stroke: 1.5px #333333;
       font-weight: 700;
       font-size: 1.4rem;
       letter-spacing: -0.5px;
@@ -96,14 +95,13 @@
     .percentage-remaining {
       position: absolute;
       right: 16px;
-      color: #333333;
+      color: #423c2f;
       font-weight: 700;
       font-size: 1.4rem;
       letter-spacing: -0.5px;
       white-space: nowrap;
     }
     
-    /* Subtle fallback loader state text */
     .loading-state {
       color: rgba(255, 255, 255, 0.6);
       font-size: 0.9rem;
@@ -128,73 +126,66 @@
     </div>
   </div>
 
-  <script>
-    // ===================================================
-    // ⚙️ CONNECT TO YOUR GOOGLE SHEET DATA
-    // Insert your unique Sheet ID and personal Cloud API Key
-    // ===================================================
-    const SHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
-    const API_KEY = 'YOUR_API_KEY_HERE';
-    const RANGE = 'Sheet1!A2:B2'; // Reads the values in row 2 directly
-
-    const API_URL = `https://googleapis.com{SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
-
-    // Update Date instantly
+    <script>
+    const API_URL = `https://script.google.com/macros/s/AKfycbzmSA0pXfU5rj-MZm0TmsmxABrBvWv89fmJyt6xy8hNsFWNYm3zfxSvZu2yBFGAYgYXIQ/exec`; 
+  
     const currentDate = new Date();
     const monthString = currentDate.toLocaleString('en-US', { month: 'short' });
     const yearString = currentDate.getFullYear();
     document.getElementById('date-stamp').textContent = `${monthString} ${yearString}`;
 
-    // Fetch live spreadsheet values
     async function fetchSpreadsheetData() {
-      try {
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error('API Network connection error');
-        
-        const data = await response.json();
-        
-        // Parse raw matrix string fields out into absolute floats safely
-        const totalBudget = parseFloat(data.values[0][0]);
-        const amountSpent = parseFloat(data.values[0][1]);
-
-        updateWidgetUI(totalBudget, amountSpent);
-      } catch (error) {
-        console.error('Failed to parse spreadsheet updates:', error);
-        document.getElementById('spent-text-container').innerHTML = 
-          `<span style="color: #ff6b6b;">Error loading live sheet data</span>`;
-      }
-    }
-
-    function updateWidgetUI(totalBudget, amountSpent) {
-      let spentPercentage = 0;
-      let remainingPercentage = 100;
-
-      if (totalBudget > 0) {
-        spentPercentage = (amountSpent / totalBudget) * 100;
-        spentPercentage = Math.min(Math.max(spentPercentage, 0), 100);
-        remainingPercentage = 100 - spentPercentage;
-      }
-
-      const phpFormatter = new Intl.NumberFormat('en-PH', {
-        style: 'currency',
-        currency: 'PHP',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-
-      // Update inner structural textual values
-      document.getElementById('spent-text-container').innerHTML = 
-        `You have spent <span class="amount-highlight">${phpFormatter.format(amountSpent)}</span> this month.`;
+    try {
+      const noCacheUrl = `${API_URL}?v=${new Date().getTime()}`;
       
-      document.getElementById('progress-fill').style.width = spentPercentage.toFixed(2) + '%';
-      document.getElementById('pct-spent').textContent = spentPercentage.toFixed(2) + '%';
-      document.getElementById('pct-remaining').textContent = remainingPercentage.toFixed(2) + '%';
+      const response = await fetch(noCacheUrl, {
+        method: 'GET',
+        mode: 'cors',
+        redirect: 'follow'
+      });
+      
+      if (!response.ok) throw new Error('API connection error');
+      
+      const data = await response.json();
+      const totalBudget = parseFloat(data.totalBudget);
+      const amountSpent = parseFloat(data.amountSpent);
+
+      updateWidgetUI(totalBudget, amountSpent);
+    } catch (error) {
+      console.error('Data stream error:', error);
+      document.getElementById('spent-text-container').innerHTML = 
+        `<span style="color: #ff6b6b;">Syncing error... retrying</span>`;
+      setTimeout(fetchSpreadsheetData, 3000);
+    }
+  }
+
+  function updateWidgetUI(totalBudget, amountSpent) {
+    let spentPercentage = 0;
+    let remainingPercentage = 100;
+
+    if (totalBudget > 0) {
+      spentPercentage = (amountSpent / totalBudget) * 100;
+      spentPercentage = Math.min(Math.max(spentPercentage, 0), 100);
+      remainingPercentage = 100 - spentPercentage;
     }
 
-    // Call execution instantly on block initialization
-    fetchSpreadsheetData();
+    const phpFormatter = new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    document.getElementById('spent-text-container').innerHTML = 
+      `You have spent <span class="amount-highlight">${phpFormatter.format(amountSpent)}</span> this month.`;
+    
+    document.getElementById('progress-fill').style.width = spentPercentage.toFixed(2) + '%';
+    document.getElementById('pct-spent').textContent = spentPercentage.toFixed(2) + '%';
+    document.getElementById('pct-remaining').textContent = remainingPercentage.toFixed(2) + '%';
+  }
+
+  fetchSpreadsheetData();
   </script>
 
 </body>
 </html>
-
